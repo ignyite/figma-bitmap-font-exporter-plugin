@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html>
+
+<body style="font-family:sans-serif">
+
+<style>
+
+    body {
+        font-family: Inter, system-ui, sans-serif;
+        background: #f5f5f7;
+        padding: 16px;
+    }
+
+    h3 {
+        margin-top: 0;
+    }
+
+    .panel {
+        background: white;
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns:1fr 1fr;
+        gap: 14px;
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        font-size: 13px;
+    }
+
+    .field label {
+        margin-bottom: 4px;
+        color: #555;
+    }
+
+    input, select {
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        font-size: 13px;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: #18a0fb;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    button {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 8px;
+        background: #18a0fb;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #0d8ae5;
+    }
+
+    button.secondary {
+        background: #e5e5ea;
+        color: #333;
+    }
+
+    button.secondary:hover {
+        background: #d8d8dd;
+    }
+
+    canvas {
+        margin-top: 16px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        width: 100%;
+    }
+
+    .tooltip {
+        cursor: help;
+    }
+
+    .info {
+        margin-bottom: 14px;
+    }
+
+    .info p {
+        font-size: 13px;
+        color: #444;
+        line-height: 1.4;
+    }
+
+    .example {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-top: 8px;
+    }
+
+    .stats {
+        margin-top: 14px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns:1fr 1fr;
+        gap: 12px;
+        text-align: center;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        color: #777;
+        margin-bottom: 4px;
+    }
+
+    .stats div {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .help-tooltip {
+        display: none;
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        z-index: 100;
+        width: 200px; /* Можно подстроить под картинки */
+    }
+
+    /* Иконка вопроса с курсором */
+    .help-icon {
+        cursor: help;
+        display: inline-block;
+        margin-left: 6px;
+        color: #18a0fb;
+        font-weight: bold;
+    }
+
+</style>
+
+<div class="panel info">
+
+    <h4>
+        How to prepare glyphs
+        <span class="help-icon tooltip" id="glyph-help">?</span>
+    </h4>
+
+    <div class="help-text">
+        <p>
+            1. Separate the symbols needed in the font into separate texts and name them according to these symbols<br>
+            2. Make all variants of text symbols in separate layers, then convert into vector via <br>
+            <strong>Outline Stroke Command</strong> (<b>Ctrl + Alt + O</b>). <br>
+            3. (If needed) If after step 2 created more than one vector variant for symbol, merge them via <br>
+            <strong>Flatten Command</strong> (<b>Alt + Shift + F</b>).
+        </p>
+    </div>
+
+
+    <div class="help-tooltip" id="glyph-tooltip">
+
+        <img src="data:image/png;base64,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"
+             class="example" alt=""/>
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATIAAABsCAMAAADe687EAAAB2lBMVEUeHh7l9P8Nmf/////k8//6+vr+/v/4+Pg4ODjj8v309PT9/f3o6OiRkZHt7e3e3t7i8fvH1N7y8vLR3+n29vbh7/rf7fji8fzg7vnZ6PLV4+3e7Pfc6vX8/PxYWFhubm5wcHDh4eGoqKirq6uioqJXV1dBQUG/5P/b29tOTk7Y7/97e3tHR0eIz/9/f3+np6dOtP9mv//k5OS6urq0tLR1dXWMjIzg8v+tra2dnZ0oKSqh2P+ysrJjZGTz+v+wsK+Hh4e2trZoaGmgoKCampqTk5NdXl7U1NTFxcXw8PAwLzAmJiZCr/+9vb3X19cWGBnt+P99yf+srKw2Njaq3P/MzMz4/P+CgoKz3//IyMhUVFTS7f8xqP8pLjDq6upfX19bW1vq9v8Znv/R0dEfRXBCRUbJ6f+W0/9cuv/Qz87k1phtdHnM2+V0w/1crfbCwMEqa70dW5xcH3LAjEYOlvnl8+ERe8jXqmVFSk2kZRjJ9P+44f+m6PyapKw1PpNOU1er8v/l9O+zvsd3foWHPz6/7/5Un+Pk8r7l560pXquSUjM7jdm9zNbcuHisbyvX4/fN17bgxoff6f+st79Ffp81IGXKmVNtPC4+GBmvzvGTyd5ZUJ69mYh0UC88msdnAAAMrElEQVR42uzU0WuqUBzA8d8tysuZJoivZaaJYizQ43BiV83KrSguxYh62IJ1H3oag9Hff6exrdq63FsT58UvCMff44fzO5D/zIrPnZ2VCwWCYBFTImn4T6LJEoNYgigUymd/RVbOyP6J7GY482a3+1NUzMgOxdslNq/ZzM5wOJn0hxnZITJBx7NyMNqeleZ0ftRCGdmByNFDjbii98d07zqtZANjjGttgO/KAKI6KrzUwdjuLE4ko/GMlMdodxhUfx21mFUGIVa3IMkGlGPUp7YKXLMBUeI5APSVfnjs1BddZ34amTb2AsbW9q6ebXDoGDKyCj2tC0l2Z7YAQG0aIva5O3faUSKyulAPySgAqameREbQdNAsybN38/b9kWQwq1kYIdKAYMUQD1aPRiiQKFpj5RViReA0hIYWxNa5uNlHhXLcCod9Vdojawinka2wjofXu2SywudLC/lIMpXsunwP7HuQryxOM1zTUugL6paTeA/EkXXvQIt3IbaoLkRFi8nVGtFiqhjrGKsgitOpLygnkd08kIhYefSOjN+f9P3icW8Zy5qWLZvmlVaRa1DhKUt1gmuK4ivw/E8FLc0zTbIGseWKb2TRB9u3zPEFZw6nLeZK97DO79swIdhRt0yhBQjJzEtpQ+aVTCPYIzMNiC3ODG2qvvQhGQVzRz2J7HDHkkFHa4WLeSFMNmSBAG3tjSxcTAnHSDbxxQYsxhfACcoWmWRIGzJwhcYXI5Nk3RoixFCwIaMYktwiA4NEbCBBfDUudc+jvoPke0ZERnnnEPb6/LtfiOy1Sct6O7cnsFNFgXjrKwP4U19pMdNaRpaRvSsjS76MLCN7V0aWfImQLddPuVT1tF4mS/aYS2GPSZItc6lsmSDZOpfK1ofIisXYyVL2jr309DFZ8cfPb5/Vb/Lr76VtIIADeO8Iw8IeWopWrew1cBDIPQUM3N7loAmEEEh8SNAks61Ti1RtFX/WX5v7gZuMsf91d7em1owK3dIy5xfuLtc7euXTuyaVWPL5cmF6dqayMDdfKiZLwieaXC/F0vzcQmVmdrpQzudeEACeNZnqDR0aQkbA/0nmuTKrTZdClQ74hMRoU9hui55jxKpmtwdnxICwRFBkCJkxUTJMWBBFeq9vmqKMISYBKoSKpkKkCyyVVVQLY4zcQJZ/AZqBIsVwcAY2Ioxxj3AIGZgsGcC86ZPJsihjSDvUIkHmEEmmfJVk+Tjy5NBxdQ822goiSHkww1BgP/8WmRfaRFMj20YOK9T0CdGhGxJbDjIRUzXFcQNOpoAw8nogKpBV8U0RK/ItNmrKvoXFjOzJisMG3sgjkfmOZWFGhh0vcPVkl1GkwIYUIznAEs5CjFs1AE4OJkXEtgmiELu2YVGxrI74KJ8wOAMTm7Dmb8jqr+q8qVVrYDCFz72Li+8uqysjk0Gsh0afrAEsy/IVpPPdkQlZiNgbWgkZvD/+nqm53u9kMLtdtlPdYfVs7jg3De7zfml5pSOuvnZFb7ELCm/DQbLd9UcPZmQ4DfkhmR5nR4Z95LoS8lJkNA7EZxgrWbHKd5lUq56A+1xsHYLWBr86ulJEb/vU3D5VRiBzZOhpOmQNK+Jgqo6aHZmuUe5mchHXSe7N0DRMGFgaTZElM7IhA1XpWOJyD47lBwA+CbLzrUNGdsYvb6rL3bWVu8291tLiSoeTNS/fDSVr+L7PyEwDUV4Ug//wZ0YWIIfXbhv7/B6DaPK6ZRObsaXIkhlZka0uTe3nTxKyJNtX6wkZaC7fftMA32VrXzrS2sFZoXVZ2V1vXtYfeZQNYi/9ED6JeLEKR8ifkdXK+1O51RTZ0c016JOBl69/bJ4JsoM9qXVdLpxvdXZXN0ulj0/gD9MYyOqsmgcpsuYGEi13ErmJ02S3d91nSfZTsHJf0F8QLcRgrDzG3rpWYDWQ29gFDjJExpyglis4XAZ/iA0yWOsC2tZAgKwZsbGxhVVgZqd5Y7FVrDcwDMut2kBBxjnNKhZS/E+cOmu4DDESG2TQNiysRYsdzLEG1qBS5shNWbF+eFN2uAxkk1SWCVLUxxwu0yV07JYPl0k5egbZMAGjQTYaZBhgNMgGHowG2WiQYYDRIBt4MLBBphaFIeRGm1X+TkomQabeDN6aHBC+mRmynUEKICXOqXBpxFbNwRVkgHburjdNKIwD+DFG6ygH9tLdbaigJxKIJiJkGBzKi4JGt9gYU5Npk6YXy5bsdjdNk+12V9sXHodjRcvs7LKstuN/AYWHJs0vHKTCc7qVA8rXr7ZEXQSwKLENcC1ROQpXhLcSmxrTsmpqQK7lyQ4I8VJExK/jkjamZVmWo1bN6j6RoZF3DLR5e63ZBLeVxBKV/5hMFFR8Go3zbqOmiZrkLAhZKQRBNU2YYbIWLoeeUaumIO4RmRb6DL2wF6cC2ZeUHZBVeFhhKUaKWjFRjzry8rjMs/4ZOqEothuQBeKItHL+PrhtEOdYMmGhbNamYkSGq+WahMlOcZmQkVZNjJ3fIzK+gpfOiJAV8GlEyBgpgIxaMeEIicICl3m6C0oV1PROuKLb85qklfMWnarhwCyPT0OV2bihdBoOAC4EbXtwNTDPS41Op1E6J62asiDdB7IiF9SiVkyVGdkI4DL+jYkAAGSrdeZ9E5BWzh3IVF5ekZHOwbWzTBy7U2guomsZKZJWTZnfp7MsGphbyUgrJrJH8/x1sgntLls5dyDjTAt/3NRmvyKTDNu2jfZ1MtKqaY3Le0S2uvz3hsBlClZdXSeLWjHhK3BahLiMyUojMjChS0uklRPsEBgMRrnkDM55dZ2swAEw0DU8dHkUkOEydrKiVk24T5+Yq5sMzacqbKF5QjlrZFErZoFm/B7CZUyG3h9RRXz5B2a9RVo5d0gOdjqKIwPQ7jghWbUDAQn3CgOVx9apyctB+Xqr5l6RxW9lY62Y0Q9RRC7WyrlDBmL/T1o19+7u/14mIUvIYrljsq+X6N3ll2s7H39PyLbmx+W3F88/nP/AP2++X5aQbcmXz5fnH558baVi75clZFvNvqU+f5zmY++XJWQ3pPsh9fki/n5ZQrYtH8XLlHWZir1fllz+t+Vbrv3xUnyUir1flpBty4evKfHNu8HFdbHkJmNrLCf17NmzCysVf78sIft1Ls7fBPl8kdz9J/8wJWSxIM0wHDlYi2R7VpqBKNA+JhPKkjKJE+4E0/Fsj8gKdIE8XfuDwCJ3q2dydqvrmDNQLeFNMnHgavrdsmkswi+1cTmaVLZjYWu+Ub6R7O0DJWuXcuEX1nnB0BeS6mqEbDn9rlSytZAsLEdzV7r4bzTNm8le3w2ZQFF1q7l6Jqn5FCUA6FPMFG/2ek+PhvMjliNfYZOjAzKJdnYlK03JmnPGVREasLBONrDbEo8wWVhekUG+HDBD4Way7Ou7IONYCejt1TPJY0EDbXY2coAWmlSGQKctkYVqAzV7NXI0LLZpd1cxmS8AEjzyoEtUtEZHaZgWWIw5UchfDcxoUtmq3g5q6s1kZNKHf06GerTRWj6TxMMNwSFb5z4xigpCMj4chj0I8sJ7nydHQ9+3wa45rlXXySAA62dZ+9V0yrsrMlLEmxKPNJ27mewOZvzEZKA59Xx7Ob0sACI70tsVDqiK39kg0/3O9IQnR0PmpN7d2QzqA7zUfkWG+Jpt1wQxTiYKkoCH8F7MLEUiskYTOHSrpXDA85bTywKAH1jqdUkpAKGyQaZ4ABV5cjQsdr0R2pXs1NT6A8mwgFTLrZGJ6vHy2a4s4JGIy9GkslWgNXi0X2RApY8oXwNo8nQ+l5pXzySbn57SRZZTKNqHG2QSM2eKPDk62INGHtg1LVPpGGqAJBgtTCbzJrc6A/FS0wewU8VlgEPIFo022DMyALhFuELdjWeS4iLaXE+zhaKjbxkk3+8p3+53ErKELJaE7O6TkCVksSRkd5+ELCGLJSG7+/xFMur9y4QslsxEcfXsliIc4iMyCdlGhq7QcOzNfSOUD9fzFpOui/2+5afpyTrZpMv8v2QH2pBJe3pmQ5HTCdmnQjaTV9JZqKWVfEJ2RWZAtz7aJKMyCiEruemDlheedzkgziWr/4k+7ff1g4CsIg/rEnggud3AZEyNkK1nSea66fRZ3xoekD15eHgoCYfM6cmkeyZ6DG7VI8nd09yejJjpN5KlM2dS7oyQKVm/VT98Cd0JyilPGakAHkj+HtlQTZN1IUamcfX/mMxht5EVWz4jTtJZXsKfBJjssGqSgTmHBToYmA8ktyTzdcVwf02WkSZpL9fvz+ppZjZjArIsvudw8OXft7T6/3qWpYu12gkhi4XlM+ksQ23cyvpHD/tW9ieIwNc7I59fgQAAAABJRU5ErkJggg=="
+             class="example" alt=""/>
+
+
+    </div>
+
+    <h4>
+        Export flow
+    </h4>
+
+    <div class="help-text">
+        <p>
+            1. Prepare glyphs<br>
+            2. Select glyphs for packing <br>
+            3. Click Preview button <br>
+            4. Configure Export settings <br>
+            5. Click Export button <br>
+        </p>
+    </div>
+
+    <div class="help-tooltip" id="export-tooltip">
+
+        <img src="data:image/png;base64,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"
+             class="example" alt=""/>
+    </div>
+
+    <div class="panel">
+
+        <h3>Bitmap Font Export</h3>
+
+        <div class="grid">
+
+            <div class="field">
+                <label class="tooltip"
+                       title="Rendering mode. Bitmap exports normal textures, MSDF exports distance-field fonts.">Mode</label>
+                <select id="fontMode">
+                    <option value="bitmap">Bitmap</option>
+                    <option value="msdf">MSDF</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="tooltip" title="Name of exported font files (.fnt and .webp).">Font Name</label>
+                <input id="fontName" value="bitmap_font">
+            </div>
+
+            <div class="field">
+                <label class="tooltip"
+                       title="Scale multiplier applied during export. 2 means glyphs are rendered twice as large.">Scale</label>
+                <input id="scale" type="number" value="1" step="0.5">
+            </div>
+
+            <div class="field">
+                <label class="tooltip"
+                       title="Padding between glyphs inside the atlas texture. Prevents texture bleeding.">Padding</label>
+                <input id="padding" type="number" value="2" min="0" max="64">
+            </div>
+
+            <div class="field">
+                <label class="tooltip"
+                       title="Compression quality of the exported WebP atlas (0.1–1). Higher = better quality, larger file.">WebP
+                    Quality</label>
+                <input id="webpQuality" type="number" value="0.9" step="0.05" min="0.1" max="1">
+            </div>
+
+            <div class="field">
+                <label class="tooltip" title="Distance field type used by rendering engines like PixiJS.">Distance
+                    Field</label>
+                <select id="distanceFieldType">
+                    <option value="none">None</option>
+                    <option value="sdf">SDF</option>
+                    <option value="msdf">MSDF</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="tooltip"
+                       title="Distance field pixel range used during rendering. Larger values improve smoothing but increase padding requirements.">Distance
+                    Range</label>
+                <label for="distanceRange"></label><input id="distanceRange" type="number" value="4" min="0">
+            </div>
+
+        </div>
+
+        <div class="buttons">
+            <button id="preview" class="secondary">Preview Atlas</button>
+            <button id="export">Export</button>
+        </div>
+
+        <div class="panel stats">
+
+            <div class="stats-grid">
+
+                <div>
+                    <div class="stat-label">Atlas Size</div>
+                    <div id="atlasSize">-</div>
+                </div>
+
+                <div>
+                    <div class="stat-label">Glyphs</div>
+                    <div id="glyphCount">-</div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <canvas id="atlasPreview"></canvas>
+
+    </div>
+
+    <script>
+
+        const glyphHelpTooltip = document.getElementById('glyph-tooltip');
+        const glyphHelpIcon = document.getElementById('glyph-help');
+        let glyphHelpTimer;
+
+        glyphHelpIcon.addEventListener('mouseenter', (e) => {
+            glyphHelpTimer = setTimeout(() => {
+                // Позиционируем подсказку рядом с иконкой
+                const rect = glyphHelpIcon.getBoundingClientRect();
+                glyphHelpTooltip.style.top = rect.bottom + window.scrollY + 8 + 'px';
+                glyphHelpTooltip.style.left = rect.left + window.scrollX + 'px';
+                glyphHelpTooltip.style.display = 'block';
+            }, 200);
+        });
+
+        glyphHelpIcon.addEventListener('mouseleave', () => {
+            clearTimeout(glyphHelpTimer);
+            glyphHelpTooltip.style.display = 'none';
+        });
+
+
+        let cachedGlyphs = null
+        let atlasData = null
+
+        const cellSize = 128
+
+        class MaxRects {
+
+            constructor(w, h) {
+                this.width = w
+                this.height = h
+                this.free = [{x: 0, y: 0, width: w, height: h}]
+                this.used = []
+            }
+
+            insert(width, height) {
+
+                let bestNode = null
+                let bestShort = Infinity
+
+                for (const r of this.free) {
+
+                    if (width <= r.width && height <= r.height) {
+
+                        const leftoverH = Math.abs(r.width - width)
+                        const leftoverV = Math.abs(r.height - height)
+                        const shortSide = Math.min(leftoverH, leftoverV)
+
+                        if (shortSide < bestShort) {
+
+                            bestNode = {
+                                x: r.x,
+                                y: r.y,
+                                width,
+                                height
+                            }
+
+                            bestShort = shortSide
+                        }
+                    }
+                }
+
+                if (!bestNode) return null
+
+                this.split(bestNode)
+                this.used.push(bestNode)
+
+                return bestNode
+            }
+
+            split(node) {
+
+                for (let i = 0; i < this.free.length; i++) {
+
+                    const r = this.free[i]
+
+                    if (
+                        node.x >= r.x + r.width ||
+                        node.x + node.width <= r.x ||
+                        node.y >= r.y + r.height ||
+                        node.y + node.height <= r.y
+                    ) continue
+
+                    if (node.x < r.x + r.width && node.x + node.width > r.x) {
+
+                        if (node.y > r.y && node.y < r.y + r.height) {
+
+                            this.free.push({
+                                x: r.x,
+                                y: r.y,
+                                width: r.width,
+                                height: node.y - r.y
+                            })
+                        }
+
+                        if (node.y + node.height < r.y + r.height) {
+
+                            this.free.push({
+                                x: r.x,
+                                y: node.y + node.height,
+                                width: r.width,
+                                height: (r.y + r.height) - (node.y + node.height)
+                            })
+                        }
+                    }
+
+                    if (node.y < r.y + r.height && node.y + node.height > r.y) {
+
+                        if (node.x > r.x && node.x < r.x + r.width) {
+
+                            this.free.push({
+                                x: r.x,
+                                y: r.y,
+                                width: node.x - r.x,
+                                height: r.height
+                            })
+                        }
+
+                        if (node.x + node.width < r.x + r.width) {
+
+                            this.free.push({
+                                x: node.x + node.width,
+                                y: r.y,
+                                width: (r.x + r.width) - (node.x + node.width),
+                                height: r.height
+                            })
+                        }
+                    }
+
+                    this.free.splice(i, 1)
+                    i--
+                }
+            }
+
+        }
+
+        function updateAtlasStats(glyphs, atlasWidth, atlasHeight) {
+            document.getElementById("atlasSize").innerText =
+                atlasWidth + " x " + atlasHeight
+
+            document.getElementById("glyphCount").innerText =
+                glyphs.length
+
+        }
+
+        function updatePaddingLimit() {
+
+            const type = dfTypeInput.value
+            if (type === "msdf") dfRangeInput.value = 4
+            if (type === "sdf") dfRangeInput.value = 8
+
+            const range = parseInt(dfRangeInput.value)
+
+            if (type === "none") {
+
+                paddingInput.min = 0
+                return
+            }
+
+            const minPadding = range + 2
+
+            paddingInput.min = minPadding
+
+            if (parseInt(paddingInput.value) < minPadding) {
+                paddingInput.value = minPadding
+            }
+
+        }
+
+        function computeKerning(chars) {
+
+            const kernings = []
+            const threshold = 2
+
+            for (let a of chars) {
+
+                for (let b of chars) {
+
+                    if (a.id === b.id) continue
+
+                    const pairWidth = a.width + b.width
+                    const advanceWidth = a.xadvance + b.xadvance
+
+                    const gap = advanceWidth - pairWidth
+
+                    if (gap < threshold) {
+
+                        const amount = -(threshold - gap)
+
+                        if (amount !== 0) {
+                            kernings.push({
+                                first: a.id,
+                                second: b.id,
+                                amount
+                            })
+                        }
+
+                    }
+
+                }
+
+            }
+
+            return kernings
+        }
+
+        function nextPow2(v) {
+            return Math.pow(2, Math.ceil(Math.log2(v)))
+        }
+
+        async function buildAtlas(glyphs, padding) {
+
+            const rects = glyphs.map(g => ({
+                glyph: g,
+                width: g.width + padding,
+                height: g.height + padding
+            }))
+
+            let size = 128
+            let placements = null
+
+            while (size <= 4096) {
+
+                const packer = new MaxRects(size, size)
+                placements = []
+
+                let failed = false
+
+                for (const r of rects) {
+
+                    const node = packer.insert(r.width, r.height)
+
+                    if (!node) {
+                        failed = true
+                        break
+                    }
+
+                    placements.push({
+                        ...node,
+                        glyph: r.glyph
+                    })
+                }
+
+                if (!failed) break
+
+                size *= 2
+            }
+
+            const atlasWidth = size
+            const atlasHeight = size
+
+            const canvas = document.getElementById("atlasPreview")
+            canvas.width = atlasWidth
+            canvas.height = atlasHeight
+
+            const ctx = canvas.getContext("2d")
+
+            const chars = []
+            const drawPromises = []
+
+            placements.forEach(p => {
+
+                const g = p.glyph
+
+                const blob = new Blob([new Uint8Array(g.image)], {type: "image/png"})
+                const img = new Image()
+
+                const pr = new Promise(resolve => {
+
+                    img.onload = () => {
+
+                        ctx.drawImage(img, p.x, p.y)
+
+                        resolve()
+                    }
+
+                    img.src = URL.createObjectURL(blob)
+
+                })
+
+                drawPromises.push(pr)
+
+                const id = g.char.charCodeAt(0)
+
+                const baseLine = Math.max(...glyphs.map(g => g.height))
+
+                chars.push({
+                    id,
+                    x: p.x,
+                    y: p.y,
+                    width: g.width,
+                    height: g.height,
+                    xoffset: 0,
+                    yoffset: baseLine - g.height,
+                    xadvance: g.width + padding
+                })
+
+            })
+
+            await Promise.all(drawPromises)
+
+            atlasData = {
+                chars,
+                atlasWidth,
+                atlasHeight
+            }
+            updateAtlasStats(chars, atlasWidth, atlasHeight)
+        }
+
+        async function rebuildAtlas() {
+
+            if (!cachedGlyphs) return
+
+            const padding = parseInt(paddingInput.value)
+
+            await buildAtlas(cachedGlyphs, padding)
+
+        }
+
+        const paddingInput = document.getElementById("padding")
+        const dfTypeInput = document.getElementById("distanceFieldType")
+        const dfRangeInput = document.getElementById("distanceRange")
+        const scaleInput = document.getElementById("scale")
+        const fontMode = document.getElementById("fontMode")
+        const distanceFieldType = document.getElementById("distanceFieldType")
+
+
+
+        updatePaddingLimit()
+
+        dfTypeInput.onchange = () => {
+            updatePaddingLimit()
+            rebuildAtlas()
+        }
+        dfRangeInput.oninput = () => {
+            updatePaddingLimit()
+            rebuildAtlas()
+        }
+
+        fontMode.onchange = () => {
+
+            const mode = fontMode.value
+
+            if (mode === "bitmap") {
+
+                distanceFieldType.value = "none"
+
+            }
+
+            if (mode === "msdf") {
+
+                distanceFieldType.value = "msdf"
+                dfRangeInput.value = Math.min(4, dfRangeInput.value)
+            }
+
+        }
+
+        scaleInput.onchange = () => {
+            document.getElementById("preview").click()
+        }
+
+        paddingInput.oninput = rebuildAtlas
+
+        document.getElementById("preview").onclick = () => {
+
+            const mode = document.getElementById("fontMode").value
+            const scale = parseFloat(document.getElementById("scale").value)
+
+            parent.postMessage({
+                pluginMessage: {
+                    type: "exportGlyphs",
+                    scale,
+                    mode
+                }
+            }, "*")
+
+        }
+
+        document.getElementById("export").onclick = () => {
+
+            if (!atlasData) return
+            const baseLine = Math.max(...atlasData.chars.map(c => c.baseline ?? c.height))
+            const kernings = computeKerning(atlasData.chars)
+            const fontName = document.getElementById("fontName").value
+
+            const atlasFile = fontName + ".webp"
+            const fntFile = fontName + ".fnt"
+            const quality = parseFloat(document.getElementById("webpQuality").value)
+
+            const canvas = document.getElementById("atlasPreview")
+
+            canvas.toBlob(blob => {
+
+                const a = document.createElement("a")
+                a.href = URL.createObjectURL(blob)
+                a.download = atlasFile
+                a.click()
+
+            }, "image/webp", quality)
+
+            let fnt = ""
+
+            fnt += `info face="${fontName}" size=32 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1\n`
+            const lineHeight = baseLine + 6
+
+            fnt += `common lineHeight=${lineHeight} base=${baseLine} scaleW=${atlasData.atlasWidth} scaleH=${atlasData.atlasHeight} pages=1 packed=0\n`
+            const dfType = dfTypeInput.value
+            const dfRange = parseInt(dfRangeInput.value)
+
+            if (dfType !== "none") {
+
+                fnt += `distanceField type=${dfType} range=${dfRange}\n`
+
+            }
+            fnt += `page id=0 file="${atlasFile}"\n`
+            fnt += `chars count=${atlasData.chars.length}\n`
+
+            atlasData.chars.forEach(c => {
+                fnt += `char id=${c.id} x=${c.x} y=${c.y} width=${c.width} height=${c.height} xoffset=0 yoffset=0 xadvance=${c.xadvance} page=0 chnl=0\n`
+            })
+
+            atlasData.chars.forEach(c => {
+
+                fnt += `char id=${c.id} x=${c.x} y=${c.y} width=${c.width} height=${c.height} xoffset=0 yoffset=0 xadvance=${c.xadvance} page=0 chnl=0\n`
+
+            })
+
+            fnt += `kernings count=${kernings.length}\n`
+
+            kernings.forEach(k => {
+                fnt += `kerning first=${k.first} second=${k.second} amount=${k.amount}\n`
+            })
+
+            const blob = new Blob([fnt], {type: "text/plain"})
+
+            const a = document.createElement("a")
+            a.href = URL.createObjectURL(blob)
+            a.download = fntFile
+            a.click()
+
+        }
+
+        window.onmessage = async (event) => {
+
+            const msg = event.data.pluginMessage
+
+            if (msg.type === "glyphs") {
+
+                cachedGlyphs = msg.glyphs
+
+                const padding = parseInt(document.getElementById("padding").value)
+                await buildAtlas(cachedGlyphs, padding)
+
+            }
+
+        }
+
+    </script>
+</div>
+</body>
+</html>

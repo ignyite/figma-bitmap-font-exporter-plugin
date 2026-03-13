@@ -23,8 +23,10 @@ figma.ui.onmessage = async (msg) => {
                 format: "PNG",
                 constraint: {
                     type: "SCALE",
-                    value: scale
-                }
+                    value: scale,
+
+                },
+                useAbsoluteBounds: false
             })
 
             glyphs.push({

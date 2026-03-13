@@ -163,14 +163,9 @@
 
     <div class="help-text">
         <p>
-            1. Separate the symbols needed in the font into separate texts and name them according to these symbols<br>
-            2. Make all variants of text symbols in separate layers, then convert into vector via <br>
-            <strong>Outline Stroke Command</strong> (<b>Ctrl + Alt + O</b>). <br>
-            3. (If needed) If after step 2 created more than one vector variant for symbol, merge them via <br>
-            <strong>Flatten Command</strong> (<b>Alt + Shift + F</b>).
+            1. Separate the symbols needed in the font into separate texts/ groups and name them according to these symbols<br>
         </p>
     </div>
-
 
     <div class="help-tooltip" id="glyph-tooltip">
 
@@ -190,9 +185,8 @@
         <p>
             1. Prepare glyphs<br>
             2. Select glyphs for packing <br>
-            3. Click Preview button <br>
-            4. Configure Export settings <br>
-            5. Click Export button <br>
+            3. Configure Export settings <br>
+            4. Click Export button <br>
         </p>
     </div>
 
@@ -506,12 +500,13 @@
                 height: g.height + padding
             }))
 
-            let size = 128
+            let sizeX = 128
+            let sizeY = 128
             let placements = null
 
-            while (size <= 4096) {
+            while (sizeX <= 4096 && sizeY <= 4096) {
 
-                const packer = new MaxRects(size, size)
+                const packer = new MaxRects(sizeX, sizeY)
                 placements = []
 
                 let failed = false
@@ -532,12 +527,19 @@
                 }
 
                 if (!failed) break
+                if(sizeX === sizeY)
+                {
+                    sizeX *=2
+                }
+                else
+                {
+                    sizeY *= 2
+                }
 
-                size *= 2
             }
 
-            const atlasWidth = size
-            const atlasHeight = size
+            const atlasWidth = sizeX
+            const atlasHeight = sizeY
 
             const canvas = document.getElementById("atlasPreview")
             canvas.width = atlasWidth
@@ -582,7 +584,7 @@
                     height: g.height,
                     xoffset: 0,
                     yoffset: baseLine - g.height,
-                    xadvance: g.width + padding
+                    xadvance: g.width + padding * 2
                 })
 
             })
@@ -612,9 +614,6 @@
         const dfRangeInput = document.getElementById("distanceRange")
         const scaleInput = document.getElementById("scale")
         const fontMode = document.getElementById("fontMode")
-        const distanceFieldType = document.getElementById("distanceFieldType")
-
-
 
         updatePaddingLimit()
 
@@ -627,29 +626,33 @@
             rebuildAtlas()
         }
 
+        scaleInput.onchange = () => {
+            rebuildAtlas()
+        }
+
         fontMode.onchange = () => {
 
             const mode = fontMode.value
 
             if (mode === "bitmap") {
 
-                distanceFieldType.value = "none"
+                dfTypeInput.value = "none"
 
             }
 
             if (mode === "msdf") {
 
-                distanceFieldType.value = "msdf"
+                dfTypeInput.value = "msdf"
                 dfRangeInput.value = Math.min(4, dfRangeInput.value)
             }
 
         }
 
-        scaleInput.onchange = () => {
-            document.getElementById("preview").click()
+        paddingInput.oninput = ()=>
+        {
+            updatePaddingLimit()
+            rebuildAtlas()
         }
-
-        paddingInput.oninput = rebuildAtlas
 
         document.getElementById("preview").onclick = () => {
 
@@ -706,13 +709,7 @@
             fnt += `chars count=${atlasData.chars.length}\n`
 
             atlasData.chars.forEach(c => {
-                fnt += `char id=${c.id} x=${c.x} y=${c.y} width=${c.width} height=${c.height} xoffset=0 yoffset=0 xadvance=${c.xadvance} page=0 chnl=0\n`
-            })
-
-            atlasData.chars.forEach(c => {
-
-                fnt += `char id=${c.id} x=${c.x} y=${c.y} width=${c.width} height=${c.height} xoffset=0 yoffset=0 xadvance=${c.xadvance} page=0 chnl=0\n`
-
+                fnt += `char id=${c.id} x=${c.x} y=${c.y} width=${c.width} height=${c.height} xoffset=${c.xoffset} yoffset=${c.yoffset} xadvance=${c.xadvance} page=0 chnl=0\n`
             })
 
             fnt += `kernings count=${kernings.length}\n`

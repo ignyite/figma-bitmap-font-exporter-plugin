@@ -1,8 +1,9 @@
 {
   "name": "Bitmap Font Exporter",
-  "id": "bitmap-font-exporter-local",
+  "id": "1613540715766227091",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
-  "editorType": ["figma"]
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page"
 }

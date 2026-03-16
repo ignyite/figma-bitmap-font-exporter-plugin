@@ -289,7 +289,6 @@
 
         glyphHelpIcon.addEventListener('mouseenter', (e) => {
             glyphHelpTimer = setTimeout(() => {
-                // Позиционируем подсказку рядом с иконкой
                 const rect = glyphHelpIcon.getBoundingClientRect();
                 glyphHelpTooltip.style.top = rect.bottom + window.scrollY + 8 + 'px';
                 glyphHelpTooltip.style.left = rect.left + window.scrollX + 'px';
@@ -429,8 +428,8 @@
             const range = parseInt(dfRangeInput.value)
             const type = dfTypeInput.value
 
-            if (type === "msdf") dfRangeInput.value = 4
-            if (type === "sdf") dfRangeInput.value = 8
+            if (type === "msdf") dfRangeInput.value = Math.max(4, dfRangeInput.value)
+            if (type === "sdf") dfRangeInput.value = Math.max(8, dfRangeInput.value)
 
 
 
@@ -598,9 +597,7 @@
         }
 
         async function rebuildAtlas() {
-
-            if (!cachedGlyphs) return
-
+            updatePaddingLimit()
             const padding = parseInt(paddingInput.value)
 
             await buildAtlas(cachedGlyphs, padding)
@@ -616,11 +613,9 @@
         updatePaddingLimit()
 
         dfTypeInput.onchange = () => {
-            updatePaddingLimit()
             rebuildAtlas()
         }
         dfRangeInput.onchange = () => {
-            updatePaddingLimit()
             rebuildAtlas()
         }
 
@@ -632,7 +627,7 @@
         if (mode === "msdf") {
 
             dfTypeInput.value = "msdf"
-            dfRangeInput.value = Math.min(4, dfRangeInput.value)
+            dfRangeInput.value = Math.max(4, dfRangeInput.value)
         }
 
         fontMode.onchange = () => {
@@ -648,14 +643,13 @@
             if (mode === "msdf") {
 
                 dfTypeInput.value = "msdf"
-                dfRangeInput.value = Math.min(4, dfRangeInput.value)
+                dfRangeInput.value = Math.max(4, dfRangeInput.value)
             }
 
         }
 
         paddingInput.onchange = ()=>
         {
-            updatePaddingLimit()
             rebuildAtlas()
         }
 

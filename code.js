@@ -14,6 +14,7 @@ figma.ui.onmessage = async (msg) => {
         }
 
         const scale = msg.scale || 1
+        const useAbsoluteBounds = msg.useAbsoluteBounds
 
         const glyphs = []
 
@@ -26,7 +27,7 @@ figma.ui.onmessage = async (msg) => {
                     value: scale,
 
                 },
-                useAbsoluteBounds: false
+                useAbsoluteBounds: useAbsoluteBounds
             })
 
             glyphs.push({

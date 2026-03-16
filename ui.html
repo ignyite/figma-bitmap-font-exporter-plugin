@@ -267,6 +267,12 @@
                 <label for="distanceRange"></label><input id="distanceRange" type="number" value="4" min="0">
             </div>
 
+            <div class="field">
+                <label class="tooltip"
+                       title="Use absolute bounds for exporting glyphs instead of relative bounds.">Use Absolute Bounds</label>
+                <input id="useAbsoluteBounds" type="checkbox" checked>
+            </div>
+
         </div>
 
         <div class="buttons">
@@ -604,7 +610,7 @@
                     width: g.width,
                     height: g.height,
                     xoffset: 0,
-                    yoffset: baseLine - g.height,
+                    yoffset: baseLine,
                     xadvance: g.width + padding * 2
                 })
 
@@ -681,18 +687,33 @@
 
             const mode = document.getElementById("fontMode").value
             const scale = parseFloat(document.getElementById("scale").value)
+            const useAbsoluteBounds = document.getElementById("useAbsoluteBounds").checked
 
             parent.postMessage({
                 pluginMessage: {
                     type: "exportGlyphs",
                     scale,
-                    mode
+                    mode,
+                    useAbsoluteBounds
                 }
             }, "*")
 
         }
 
         document.getElementById("export").onclick = () => {
+
+            const mode = document.getElementById("fontMode").value
+            const scale = parseFloat(document.getElementById("scale").value)
+            const useAbsoluteBounds = document.getElementById("useAbsoluteBounds").checked
+
+            parent.postMessage({
+                pluginMessage: {
+                    type: "exportGlyphs",
+                    scale,
+                    mode,
+                    useAbsoluteBounds
+                }
+            }, "*");
 
             if (!atlasData) return
             const baseLine = Math.max(...atlasData.chars.map(c => c.baseline ?? c.height))

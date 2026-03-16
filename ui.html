@@ -224,6 +224,12 @@
 
             <div class="field">
                 <label class="tooltip"
+                       title="Font size to be included in the exported font info.">Font Size</label>
+                <input id="fontSize" type="number" value="60" min="1">
+            </div>
+
+            <div class="field">
+                <label class="tooltip"
                        title="Padding between glyphs inside the atlas texture. Prevents texture bleeding.">Padding</label>
                 <input id="padding" type="number" value="2" min="0" max="64">
             </div>
@@ -692,7 +698,8 @@
 
             let fnt = ""
 
-            fnt += `info face="${fontName}" size=32 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1\n`
+            const fontSize = document.getElementById("fontSize").value;
+            fnt += `info face="${fontName}" size=${fontSize} bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=1 aa=1 padding=0,0,0,0 spacing=1,1\n`
             const lineHeight = baseLine + 6
 
             fnt += `common lineHeight=${lineHeight} base=${baseLine} scaleW=${atlasData.atlasWidth} scaleH=${atlasData.atlasHeight} pages=1 packed=0\n`

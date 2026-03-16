@@ -206,8 +206,8 @@
                 <label class="tooltip"
                        title="Rendering mode. Bitmap exports normal textures, MSDF exports distance-field fonts.">Mode</label>
                 <select id="fontMode">
-                    <option value="bitmap">Bitmap</option>
                     <option value="msdf">MSDF</option>
+                    <option value="bitmap">Bitmap</option>
                 </select>
             </div>
 
@@ -305,8 +305,6 @@
 
         let cachedGlyphs = null
         let atlasData = null
-
-        const cellSize = 128
 
         class MaxRects {
 
@@ -428,12 +426,13 @@
         }
 
         function updatePaddingLimit() {
-
+            const range = parseInt(dfRangeInput.value)
             const type = dfTypeInput.value
+
             if (type === "msdf") dfRangeInput.value = 4
             if (type === "sdf") dfRangeInput.value = 8
 
-            const range = parseInt(dfRangeInput.value)
+
 
             if (type === "none") {
 
@@ -493,7 +492,6 @@
         }
 
         async function buildAtlas(glyphs, padding) {
-
             const rects = glyphs.map(g => ({
                 glyph: g,
                 width: g.width + padding,
@@ -621,13 +619,19 @@
             updatePaddingLimit()
             rebuildAtlas()
         }
-        dfRangeInput.oninput = () => {
+        dfRangeInput.onchange = () => {
             updatePaddingLimit()
             rebuildAtlas()
         }
 
         scaleInput.onchange = () => {
             rebuildAtlas()
+        }
+
+        if (mode === "msdf") {
+
+            dfTypeInput.value = "msdf"
+            dfRangeInput.value = Math.min(4, dfRangeInput.value)
         }
 
         fontMode.onchange = () => {
@@ -648,7 +652,7 @@
 
         }
 
-        paddingInput.oninput = ()=>
+        paddingInput.onchange = ()=>
         {
             updatePaddingLimit()
             rebuildAtlas()

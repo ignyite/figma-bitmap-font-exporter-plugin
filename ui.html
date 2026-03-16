@@ -165,6 +165,15 @@
         <p>
             1. Separate the symbols needed in the font into separate texts/ groups and name them according to these symbols<br>
         </p>
+        <p>
+            2. Or use the automatic text generator below to create separate text objects<br>
+        </p>
+    </div>
+
+    <div class="panel" style="margin-top: 10px;">
+        <h5>Automatic Text Generator</h5>
+        <p>Select a text object to split into individual characters</p>
+        <button id="generateTextObjects" class="secondary" style="margin-top: 10px;">Split Selected Text</button>
     </div>
 
     <div class="help-tooltip" id="glyph-tooltip">
@@ -306,6 +315,15 @@
             clearTimeout(glyphHelpTimer);
             glyphHelpTooltip.style.display = 'none';
         });
+
+        // Automatic text object generation functionality
+        document.getElementById("generateTextObjects").onclick = () => {
+            parent.postMessage({
+                pluginMessage: {
+                    type: "generateTextObjects"
+                }
+            }, "*");
+        };
 
 
         let cachedGlyphs = null

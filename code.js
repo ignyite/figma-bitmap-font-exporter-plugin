@@ -1,4 +1,4 @@
-figma.showUI(__html__, { width: 600, height: 700 })
+figma.showUI(__html__, { width: 600, height: 900 })
 
 figma.ui.onmessage = async (msg) => {
 
@@ -113,6 +113,9 @@ figma.ui.onmessage = async (msg) => {
         }, { maxX: 0, maxY: 0 })
 
         containerFrame.resizeWithoutConstraints(bounds.maxX, bounds.maxY)
+
+        // Add the container frame to the current page so it's visible
+        figma.currentPage.appendChild(containerFrame);
 
         figma.notify(`Extracted ${uniqueCharacters.length} unique characters: ${uniqueCharacters.filter(c => c !== ' ').join('')}`);
     }

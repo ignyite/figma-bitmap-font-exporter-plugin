@@ -152,19 +152,6 @@
         font-weight: bold;
     }
 
-    #previewContainer {
-        width: 100%;
-        height: 220px;            /* fixed preview height */
-        overflow: auto;           /* 🔥 enables scrolling */
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        background: #f8f8f8;
-    }
-
-    /* optional: center canvas nicely */
-    #previewCanvas {
-        display: block;
-    }
 
 </style>
 
@@ -316,33 +303,6 @@
 
     </div>
 
-    <div class="panel">
-
-        <h3>Preview Usage</h3>
-
-        <div class="panel stats">
-
-            <div class="stats-grid">
-
-                <div>
-                    <div class="stat-label">Character Count</div>
-                    <div id="charCount">-</div>
-                </div>
-
-                <div>
-                    <div class="stat-label">Preview Status</div>
-                    <div id="previewStatus">Not loaded</div>
-                </div>
-
-            </div>
-
-        </div>
-
-        <div id="previewContainer">
-            <canvas id="previewCanvas"></canvas>
-        </div>
-
-    </div>
 
     <script>
 
@@ -666,7 +626,6 @@
                 atlasHeight
             }
             updateAtlasStats(chars, atlasWidth, atlasHeight)
-            updateUsagePreview();
         }
 
         async function rebuildAtlas() {
@@ -828,134 +787,6 @@
 
             }
 
-        }
-
-        function updateUsagePreview() {
-            const canvas = document.getElementById("previewCanvas");
-
-            const ctx = canvas.getContext("2d");
-            const charCountElement = document.getElementById("charCount");
-            const previewStatusElement = document.getElementById("previewStatus");
-
-            if (!atlasData || !atlasData.chars || atlasData.chars.length === 0) {
-                previewStatusElement.innerText = "No font data";
-                canvas.width = 400;
-                canvas.height = 100;
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "black";
-                ctx.font = "16px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText("No font data available", canvas.width / 2, canvas.height / 2);
-                charCountElement.innerText = "0";
-                return;
-            }
-
-            // Calculate canvas dimensions based on characters with proper auto-fit
-            const charSpacing = 2; // Small spacing between characters
-            const canvasPadding = 20; // Padding around the entire canvas content
-
-            // Calculate the total width needed for all characters using their xadvance values
-            // xadvance defines the horizontal space each character takes up
-            let totalWidth = 0;
-            for (const char of atlasData.chars) {
-                totalWidth += char.xadvance; // Use xadvance for proper spacing
-            }
-
-            // Add spacing between characters (but not after the last one)
-            totalWidth += (atlasData.chars.length - 1) * charSpacing;
-
-            // Calculate canvas dimensions with padding
-            canvas.width = Math.max(2000, totalWidth + canvasPadding * 2); // Minimum width of 400px
-            canvas.height = atlasData.chars[0].height; // Fixed height for consistency
-
-            // Fill canvas background
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Check if cachedGlyphs exists and has data
-            if (!cachedGlyphs || cachedGlyphs.length === 0) {
-                previewStatusElement.innerText = "No glyph data";
-                charCountElement.innerText = "0";
-                return;
-            }
-
-            // Create an array of promises for all image loads
-            let xPosition = 0; // Start drawing with left padding
-            const drawPromises = [];
-
-            for (const char of atlasData.chars) {
-                const glyph = cachedGlyphs.find(g => g.char.charCodeAt(0) === char.id);
-
-                if (glyph) {
-                    const uint8Array = new Uint8Array(glyph.image);
-                    let binaryString = '';
-                    for (let i = 0; i < uint8Array.length; i++) {
-                        binaryString += String.fromCharCode(uint8Array[i]);
-                    }
-                    const base64String = btoa(binaryString);
-                    const img = new Image();
-
-                    const loadPromise = new Promise((resolve) => {
-                        img.onload = () => {
-
-                            ctx.drawImage(
-                                img,
-                                xPosition + char.xoffset, // Apply xoffset for proper horizontal alignment
-                                0,
-                                char.width,
-                                char.height
-                            );
-
-                            xPosition += char.xadvance;
-                            resolve();
-                        };
-
-                        img.src = `data:image/png;base64,${base64String}`;
-                    });
-
-                    drawPromises.push(loadPromise);
-                }
-
-                // Move xPosition to the next character's position using xadvance
-                //xPosition += char.xadvance + charSpacing;
-
-            }
-
-            // Update character count immediately
-            charCountElement.innerText = atlasData.chars.length;
-            previewStatusElement.innerText = "Loading...";
-
-            canvas.style.width = "100%";
-            canvas.style.height = "auto";
-
-            // Log final canvas dimensions for verification
-            console.log('Final canvas dimensions:', {
-                width: canvas.width,
-                height: canvas.height
-            });
-
-            // Test canvas accessibility
-            try {
-                const testDataURL = canvas.toDataURL();
-                console.log('Canvas accessible, length:', testDataURL.length);
-            } catch (e) {
-                console.error('Canvas access error (tainting):', e.message);
-            }
-
-            if (drawPromises.length === 0) {
-                // If no characters were found to draw
-                previewStatusElement.innerText = "No characters to display";
-                return;
-            }
-
-            // When all images are loaded, update the status
-            Promise.all(drawPromises).then(() => {
-                previewStatusElement.innerText = "Ready";
-            }).catch((error) => {
-                console.error("Error in updateUsagePreview:", error);
-                previewStatusElement.innerText = "Error loading";
-            });
         }
 
     </script>

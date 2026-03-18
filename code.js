@@ -4,7 +4,14 @@ const selectedOnOpen = figma.currentPage.selection;
 const textNodeOnOpen = selectedOnOpen.find(n => n.type === "TEXT");
 figma.ui.postMessage({
     type: "init",
-    fontSize: textNodeOnOpen ? textNodeOnOpen.fontSize : 0
+    fontSize: textNodeOnOpen ? textNodeOnOpen.fontSize : 0,
+    hasText: !!textNodeOnOpen
+});
+
+figma.on("selectionchange", () => {
+    const sel = figma.currentPage.selection;
+    const hasText = sel.some(n => n.type === "TEXT");
+    figma.ui.postMessage({ type: "selectionChange", hasText });
 });
 
 figma.ui.onmessage = async (msg) => {

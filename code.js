@@ -1,5 +1,12 @@
 figma.showUI(__html__, { width: 600, height: 900 })
 
+const selectedOnOpen = figma.currentPage.selection;
+const textNodeOnOpen = selectedOnOpen.find(n => n.type === "TEXT");
+figma.ui.postMessage({
+    type: "init",
+    fontSize: textNodeOnOpen ? textNodeOnOpen.fontSize : 0
+});
+
 figma.ui.onmessage = async (msg) => {
 
     const format = msg.mode === "msdf" ? "SVG" : "PNG"
@@ -72,37 +79,53 @@ figma.ui.onmessage = async (msg) => {
         // Create individual text nodes for each character in the text string
         const characters = [...textToGenerate]; // Use spread operator to handle emojis and special characters properly
         const uniqueCharacters = [...new Set(characters)]; // Remove duplicates to create unique symbols
-        const startX = figma.viewport.center.x;
-        const startY = figma.viewport.center.y;
-        const fontSize = templateNode.fontSize; // Use the template's font size to calculate spacing
-        const spacing = fontSize * 1.2; // Spacing based on font size with slight padding
+        let paddingX = 0
+        if(msg.charPaddingX) {
+            paddingX  =msg.charPaddingX
+        }
+        let paddingY = 0;
+        if(msg.charPaddingY)
+        {
+            paddingY = msg.charPaddingY;
+        }
         const charsPerRow = 5; // Number of characters per row before wrapping
+        const fontName = msg.fontName || "bitmap_font";
 
         // Create a frame to contain all the text objects
         const containerFrame = figma.createFrame();
-        containerFrame.name = "Generated Characters";
-        containerFrame.x = startX;
-        containerFrame.y = startY;
+        containerFrame.name = fontName;
+        containerFrame.x = figma.viewport.center.x;
+        containerFrame.y = figma.viewport.center.y;
         containerFrame.fills = []; // No fill for the container frame
         await figma.loadFontAsync(templateNode.fontName);
-        
+
+        let charIndex = 0;
         for (let i = 0; i < uniqueCharacters.length; i++) {
             const char = uniqueCharacters[i];
             if (char === ' ') continue; // Skip space characters
 
             // Clone the template text node
-            const clonedTextNode = templateNode.clone();
-            
-            // Update the character content and name
-            clonedTextNode.characters = char;
-            clonedTextNode.name = char; // Name the text object with the character it represents
-            
-            // Position the cloned text node within the frame based on font size
-            clonedTextNode.x = (i % charsPerRow) * spacing;
-            clonedTextNode.y = Math.floor(i / charsPerRow) * spacing;
-            
-            // Add the cloned text node to the container frame
-            containerFrame.appendChild(clonedTextNode);
+            const textNode = templateNode.clone();
+            textNode.characters = char;
+            textNode.name = char;
+            textNode.x = paddingX;
+            textNode.y = paddingY;
+
+            // Create a frame for this character
+            const charFrame = figma.createFrame();
+            charFrame.name = char;
+            charFrame.fills = [];
+            charFrame.clipsContent = false;
+            charFrame.resizeWithoutConstraints(textNode.width + paddingX * 2, textNode.height + paddingY * 2);
+            charFrame.appendChild(textNode);
+            charFrame.expanded = false;
+
+            // Grid placement
+            charFrame.x = (charIndex % charsPerRow) * (charFrame.width + 4);
+            charFrame.y = Math.floor(charIndex / charsPerRow) * (charFrame.height + 4);
+
+            containerFrame.appendChild(charFrame);
+            charIndex++;
         }
 
         const bounds = containerFrame.children.reduce((acc, node) => {
@@ -117,7 +140,7 @@ figma.ui.onmessage = async (msg) => {
         // Add the container frame to the current page so it's visible
         figma.currentPage.appendChild(containerFrame);
 
-        figma.notify(`Extracted ${uniqueCharacters.length} unique characters: ${uniqueCharacters.filter(c => c !== ' ').join('')}`);
+        figma.notify(`Extracted ${uniqueCharacters.filter(c => c !== ' ').length} unique characters`);
     }
 
 }

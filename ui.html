@@ -222,8 +222,13 @@
             </div>
 
             <div class="field">
-                <label class="tooltip" title="Name of exported font files (.fnt and .webp).">Font Name</label>
+                <label class="tooltip" title="Font face name included in the .fnt file info.">Font Name</label>
                 <input id="fontName" value="bitmap_font">
+            </div>
+
+            <div class="field">
+                <label class="tooltip" title="Base name for exported files (.fnt and .webp). If empty, Font Name is used.">Export File Name</label>
+                <input id="exportFileName" value="">
             </div>
 
             <div class="field">
@@ -722,8 +727,9 @@
             const kernings = computeKerning(atlasData.chars)
             const fontName = document.getElementById("fontName").value
 
-            const atlasFile = fontName + ".webp"
-            const fntFile = fontName + ".fnt"
+            const exportFileName = document.getElementById("exportFileName").value.trim() || fontName
+            const atlasFile = exportFileName + ".webp"
+            const fntFile = exportFileName + ".fnt"
             const quality = parseFloat(document.getElementById("webpQuality").value)
 
             const canvas = document.getElementById("atlasPreview")
